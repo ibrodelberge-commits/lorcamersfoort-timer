@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="winterspell" data-mode="judge">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lorcamersfoort – Winterspell Set Championship</title>
+  <meta name="description" content="Tournament countdown timer for Disney Lorcana Winterspell Set Championship by Lorcamersfoort." />
+
+  <meta property="og:title"       content="Lorcamersfoort – Winterspell Set Championship Timer" />
+  <meta property="og:description" content="Countdown timer for Disney Lorcana Winterspell Set Championship tournaments." />
+  <meta property="og:type"        content="website" />
+  <meta property="og:image"       content="Assets/Lorcamersfoort/LorcanaTimer_256.png" />
+
+  <link rel="icon" href="Assets/Lorcamersfoort/LorcanaTimer.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-state="idle">
+
+  <!-- ══ Snow canvas (above background, below UI) ════════════════════ -->
+  <canvas id="snow-canvas" aria-hidden="true"></canvas>
+
+  <!-- ══ SETTINGS OVERLAY + PANEL ════════════════════════════════════ -->
+  <div id="settings-overlay" class="hidden" aria-hidden="true"></div>
+
+  <aside id="settings-panel" class="hidden" aria-label="Tournament Settings" aria-hidden="true">
+    <div id="settings-header">
+      <h2>Settings</h2>
+      <button id="settings-close" aria-label="Close settings">&times;</button>
+    </div>
+
+    <div id="settings-body">
+
+      <fieldset>
+        <legend>Event</legend>
+        <label for="s-event-name">Event Name</label>
+        <input type="text" id="s-event-name" maxlength="60" placeholder="Set Championship" />
+
+        <label for="s-theme">Set Theme</label>
+        <select id="s-theme">
+          <option value="winterspell">Winterspell</option>
+          <option value="generic">Generic Lorcana</option>
+        </select>
+
+        <label for="s-mode">View Mode</label>
+        <select id="s-mode">
+          <option value="judge">Judge / TO — Full Controls</option>
+          <option value="spectator">Spectator / Projector — Clock Only</option>
+        </select>
+      </fieldset>
+
+      <fieldset>
+        <legend>Tournament Format</legend>
+        <label for="s-format">Format</label>
+        <select id="s-format">
+          <option value="swiss">Swiss Only</option>
+          <option value="swiss-top8">Swiss + Top 8</option>
+          <option value="swiss-top4">Swiss + Top 4</option>
+        </select>
+
+        <label for="s-swiss-rounds">Number of Swiss Rounds</label>
+        <div class="input-group">
+          <input type="number" id="s-swiss-rounds" min="1" max="10" value="5" />
+          <span class="input-hint">3 (4–8p) · 4 (9–16p) · 5 (17–32p) · 6 (33+p)</span>
+        </div>
+
+        <label for="s-topcut-format">Top Cut Format</label>
+        <select id="s-topcut-format">
+          <option value="bo3">Best-of-3</option>
+          <option value="bo1">Best-of-1</option>
+        </select>
+      </fieldset>
+
+      <fieldset>
+        <legend>Round Durations</legend>
+        <label for="s-swiss-time">Swiss Round Duration (minutes)</label>
+        <input type="number" id="s-swiss-time" min="1" max="120" value="50" />
+
+        <label for="s-topcut-time">Top Cut Duration (minutes)</label>
+        <input type="number" id="s-topcut-time" min="1" max="120" value="60" />
+      </fieldset>
+
+    </div>
+
+    <div id="settings-footer">
+      <button id="settings-cancel">Cancel</button>
+      <button id="settings-apply" class="btn-primary">Apply &amp; Save</button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN APP ═════════════════════════════════════════════════════ -->
+  <div id="app">
+
+    <!-- LORCAMERSFOORT LOGO — fixed left panel -->
+    <div id="logo-area">
+      <img id="logo-watermark"
+           src="Assets/Lorcamersfoort/Lorcanatimer.png"
+           alt="Lorcamersfoort" />
+      <h1 id="event-name-display">Set Championship</h1>
+    </div>
+
+    <!-- ROUND PANEL — fixed vertical right side -->
+    <div id="round-area">
+      <div id="round-badge">
+        <!-- frost accent top -->
+        <div class="rnd-accent" aria-hidden="true">
+          <svg viewBox="0 0 56 14" xmlns="http://www.w3.org/2000/svg">
+            <line x1="3" y1="7" x2="53" y2="7" stroke="#5ec8f5" stroke-width="0.8" opacity="0.35"/>
+            <polygon points="28,1 30.5,6.5 28,5 25.5,6.5" fill="#5ec8f5" opacity="0.75"/>
+          </svg>
+        </div>
+
+        <span id="round-label">Round</span>
+        <span id="round-number">1</span>
+
+        <div class="rnd-divider"></div>
+
+        <img id="round-ink-icon"
+             src="Assets/DisneyLorcana/Generic/Ink Icons In Frames/RGB/COLOR_AMBER_RGB.png"
+             alt="" aria-hidden="true" />
+
+        <span id="round-type-label">Swiss</span>
+
+        <!-- frost accent bottom -->
+        <div class="rnd-accent" aria-hidden="true">
+          <svg viewBox="0 0 56 14" xmlns="http://www.w3.org/2000/svg">
+            <line x1="3" y1="7" x2="53" y2="7" stroke="#5ec8f5" stroke-width="0.8" opacity="0.35"/>
+            <polygon points="28,13 30.5,7.5 28,9 25.5,7.5" fill="#5ec8f5" opacity="0.75"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CLOCK STAGE — surreal living centrepiece ══════════════════ -->
+    <main id="clock-stage" role="main">
+      <div class="clock-container">
+
+        <!-- SVG: rotating bezel ring + depleting arc -->
+        <svg id="clock-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <radialGradient id="bezGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stop-color="#c8e8ff" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#3a8fff" stop-opacity="0.04"/>
+            </radialGradient>
+            <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#7dc4ff" stop-opacity="1"/>
+              <stop offset="50%"  stop-color="#b8d9f5" stop-opacity="1"/>
+              <stop offset="100%" stop-color="#3a8fff" stop-opacity="1"/>
+            </linearGradient>
+            <filter id="arcGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="tickGlow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="crystalGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <!-- Arcane strong glow filter -->
+            <filter id="arcaneGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="goldGlow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+
+          <!-- Outer decorative ring (rotates slowly via CSS) -->
+          <g id="bezel-outer-ring">
+            <!-- Soft outer glow halo -->
+            <circle cx="200" cy="200" r="191"
+                    fill="none"
+                    stroke="rgba(94,200,245,0.08)"
+                    stroke-width="10"/>
+            <!-- Main ice ring -->
+            <circle cx="200" cy="200" r="188"
+                    fill="none"
+                    stroke="rgba(184,217,245,0.55)"
+                    stroke-width="2"/>
+            <!-- Gold dashed orbit ring -->
+            <circle cx="200" cy="200" r="195"
+                    fill="none"
+                    stroke="rgba(201,168,76,0.35)"
+                    stroke-width="1"
+                    stroke-dasharray="5 16"/>
+            <!-- Tick marks + 12-o’clock marker generated by JS -->
+            <g id="tick-marks" filter="url(#tickGlow)"></g>
+          </g>
+          <!-- Counter-clockwise outer ring -->
+          <g id="bezel-counter-ring">
+            <!-- Gold dashed rune ring, clearly outside main bezel -->
+            <circle cx="200" cy="200" r="215"
+                    fill="none"
+                    stroke="rgba(201,168,76,0.60)"
+                    stroke-width="1.8"
+                    stroke-dasharray="8 20"/>
+            <!-- Ice-blue thin accent ring -->
+            <circle cx="200" cy="200" r="221"
+                    fill="none"
+                    stroke="rgba(94,200,245,0.28)"
+                    stroke-width="1"
+                    stroke-dasharray="2 18"/>
+          </g>
+          <!-- Arc track (background) -->
+          <circle cx="200" cy="200" r="160"
+                  fill="none"
+                  stroke="rgba(50,90,150,0.20)"
+                  stroke-width="11"
+                  stroke-linecap="round"/>
+
+          <!-- Depletion arc — dashoffset controlled by JS -->
+          <circle id="depletion-arc"
+                  cx="200" cy="200" r="160"
+                  fill="none"
+                  stroke="url(#arcGrad)"
+                  stroke-width="11"
+                  stroke-linecap="round"
+                  stroke-dasharray="1005.31"
+                  stroke-dashoffset="0"
+                  transform="rotate(-90 200 200)"
+                  filter="url(#arcGlow)"/>
+
+          <!-- Inner frost fill -->
+          <circle cx="200" cy="200" r="148"
+                  fill="rgba(3,12,40,0.60)"
+                  stroke="rgba(100,170,220,0.12)"
+                  stroke-width="1"/>
+        </svg>
+
+        <!-- Digital readout overlaid on SVG -->
+        <div id="clock-inner">
+          <div id="time-display" aria-live="polite" aria-atomic="true">50:00</div>
+          <div id="status-text" role="status">Ready to Start</div>
+        </div>
+
+      </div><!-- /.clock-container -->
+
+    </main>
+
+    <!-- CONTROLS (hidden in spectator mode) -->
+    <footer id="controls-area">
+      <div id="main-controls">
+        <button id="btn-prev-round" class="btn-nav" aria-label="Previous round">&#9664; Prev</button>
+        <button id="btn-reset" aria-label="Reset timer">&#8635; Reset</button>
+        <button id="btn-start" class="btn-primary" aria-label="Start timer">&#9654; Start</button>
+        <button id="btn-pause" aria-label="Pause timer" disabled>&#9646;&#9646; Pause</button>
+        <button id="btn-next-round" class="btn-nav" aria-label="Next round">Next &#9654;</button>
+      </div>
+      <div id="secondary-controls">
+        <button id="btn-settings" aria-label="Open settings">&#9881; Settings</button>
+        <span id="keyboard-hint">Space · &#8592;&#8594; Rounds · S Settings · Ctrl+R Reset</span>
+      </div>
+    </footer>
+
+  </div><!-- /#app -->
+
+  <!-- ══ EXTRA TURNS OVERLAY ══════════════════════════════════════════ -->
+  <div id="extra-turns-overlay" class="hidden" role="dialog" aria-modal="true" aria-label="Time Called">
+    <div id="extra-turns-box">
+      <!-- Decorative ice crystal SVG -->
+      <div class="et-crystal" aria-hidden="true">
+        <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+          <line x1="40" y1="4"  x2="40" y2="76" stroke="#b8d9f5" stroke-width="2.5" opacity="0.8"/>
+          <line x1="4"  y1="40" x2="76" y2="40" stroke="#b8d9f5" stroke-width="2.5" opacity="0.8"/>
+          <line x1="11" y1="11" x2="69" y2="69" stroke="#7dc4ff" stroke-width="1.8" opacity="0.6"/>
+          <line x1="69" y1="11" x2="11" y2="69" stroke="#7dc4ff" stroke-width="1.8" opacity="0.6"/>
+          <!-- Barbs on main axes -->
+          <line x1="40" y1="18" x2="34" y2="24" stroke="#b8d9f5" stroke-width="1.5" opacity="0.6"/>
+          <line x1="40" y1="18" x2="46" y2="24" stroke="#b8d9f5" stroke-width="1.5" opacity="0.6"/>
+          <line x1="40" y1="62" x2="34" y2="56" stroke="#b8d9f5" stroke-width="1.5" opacity="0.6"/>
+          <line x1="40" y1="62" x2="46" y2="56" stroke="#b8d9f5" stroke-width="1.5" opacity="0.6"/>
+          <line x1="18" y1="40" x2="24" y2="34" stroke="#b8d9f5" stroke-width="1.5" opacity="0.6"/>
+          <line x1="18" y1="40" x2="24" y2="46" stroke="#b8d9f5" stroke-width="1.5" opacity="0.6"/>
+          <line x1="62" y1="40" x2="56" y2="34" stroke="#b8d9f5" stroke-width="1.5" opacity="0.6"/>
+          <line x1="62" y1="40" x2="56" y2="46" stroke="#b8d9f5" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="40" cy="40" r="5" fill="#0a1a3a" stroke="#7dc4ff" stroke-width="1.5" opacity="0.9"/>
+        </svg>
+      </div>
+      <h2>Time Called!</h2>
+      <p>Complete <strong>5 additional turns</strong><br>starting with the active player.</p>
+      <div id="turns-counter">
+        <span id="turns-left">5</span>
+        <span id="turns-label">turns remaining</span>
+      </div>
+      <div id="turns-buttons">
+        <button id="btn-turn-done" class="btn-primary">&#10003; Turn Complete</button>
+        <button id="btn-turns-dismiss">&#10005; Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="timer.js"></script>
+</body>
+</html>

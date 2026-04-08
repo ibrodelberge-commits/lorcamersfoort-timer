@@ -1,0 +1,873 @@
+﻿/* ═══════════════════════════════════════════════════════════════════════
+   Lorcamersfoort — Winterspell Set Championship Timer
+   style.css  |  Surreal living-fantasy Disney clock edition
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── CSS Custom Properties ────────────────────────────────────────────── */
+:root {
+  /* Geometry */
+  --bezel-size: clamp(340px, 60vmin, 640px);
+  --arc-r:      160;
+  --arc-circ:   1005.31px; /* 2π × 160 */
+
+  /* Winterspell palette */
+  --midnight:   #05091e;
+  --ice-core:   #b8d9f5;
+  --sapphire:   #3a8fff;
+  --frost:      #7dc4ff;
+  --silver:     #8fb8d4;
+  --deep-navy:  rgba(3, 10, 36, 0.72);
+
+  /* State colours (overridden per state) */
+  --state-col:  #b8d9f5;
+  --state-glow: rgba(184, 217, 245, 0.5);
+
+  /* Shared UI tokens */
+  --accent:     #c9a84c;   /* gold */
+  --accent2:    #5ec8f5;   /* ice blue */
+  --border:     rgba(94, 200, 245, 0.22);
+  --card-bg:    rgba(3, 11, 38, 0.78);
+  --card-border:rgba(94, 200, 245, 0.20);
+  --ui-glow:    rgba(94, 200, 245, 0.20);
+
+  /* Generic theme (overrides for data-theme="generic") */
+  --generic-accent2:  #8b6fdd;
+  --generic-border:   rgba(139,111,221,0.32);
+  --generic-card-bg:  rgba(14, 8, 42, 0.85);
+  --generic-card-border: rgba(139,111,221,0.22);
+  --generic-ui-glow:  rgba(139,111,221,0.20);
+}
+
+/* Per-theme accent2 and border token override */
+[data-theme="generic"] {
+  --accent2:       #8b6fdd;
+  --border:        rgba(139,111,221,0.32);
+  --card-bg:       rgba(14, 8, 42, 0.85);
+  --card-border:   rgba(139,111,221,0.22);
+  --ui-glow:       rgba(139,111,221,0.20);
+}
+
+/* ── Reset ────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Body & Background ────────────────────────────────────────────────── */
+body {
+  font-family: 'Cinzel', serif;
+  background-color: var(--midnight);
+  background-image: url('Assets/DisneyLorcana/Winterspell/GSA_S11_Social_Backgrounds_1x1.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-attachment: fixed;
+  color: #e8f4ff;
+  min-height: 100%;
+}
+
+/* Dark vignette overlay painted over the background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 120% 95% at 50% 45%, rgba(2,8,30,0.03) 0%, rgba(2,8,30,0.32) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+[data-theme="generic"] body,
+[data-theme="generic"] {
+  background-image: none;
+  background-color: #09031e;
+}
+[data-theme="generic"] body::before {
+  background: rgba(6,2,22,0.97);
+}
+
+/* ── Snow canvas ──────────────────────────────────────────────────────── */
+#snow-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ── Settings overlay & panel (above snow, below app) ────────────────── */
+#settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+}
+#settings-overlay.hidden { display: none; }
+
+/* ── App shell ────────────────────────────────────────────────────────── */
+#app {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px 12px;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════════════════════════════ */
+#main-header {
+  display: none;
+}
+
+#header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+#logo-set {
+  height: 60px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 18px rgba(0,0,0,0.85));
+}
+
+#event-name-display {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: clamp(1.3rem, 2.8vw, 2.1rem);
+  color: rgba(201,168,76,0.90);
+  text-shadow: 0 0 18px rgba(201,168,76,0.5);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.3;
+  margin-top: 6px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ROUND BADGE
+   ═══════════════════════════════════════════════════════════════════════ */
+/* ── Round panel — fixed vertical card, left-of-centre ──────────────── */
+#round-area {
+  position: fixed;
+  right: clamp(72px, 25vw, 500px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+#round-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  width: 130px;
+  background: rgba(3,11,40,0.70);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  padding: 18px 10px 18px;
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 0 0 1px rgba(94,200,245,0.07),
+    0 0 32px var(--ui-glow),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.rnd-accent {
+  width: 56px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.rnd-accent svg { width: 100%; height: 100%; }
+
+.rnd-divider {
+  width: 44px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(94,200,245,0.45), transparent);
+  flex-shrink: 0;
+  margin: 1px 0;
+}
+
+#round-label {
+  font-size: 0.58rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent2);
+  opacity: 0.60;
+}
+
+#round-number {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.6rem, 2.8vw, 2.4rem);
+  color: var(--accent);
+  text-shadow: 0 0 16px rgba(201,168,76,0.60);
+  line-height: 1;
+  text-align: center;
+  transition: font-size 0.3s ease;
+}
+
+#round-ink-icon {
+  height: 72px;
+  width: 72px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px var(--accent2)) drop-shadow(0 0 20px rgba(94,200,245,0.30));
+  transition: filter 0.5s ease;
+}
+
+#round-type-label {
+  font-size: 0.62rem;
+  letter-spacing: 1.2px;
+  color: rgba(180,210,230,0.55);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CLOCK STAGE
+   ═══════════════════════════════════════════════════════════════════════ */
+#clock-stage {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding: 4px 0;
+}
+
+/* Lorcamersfoort logo — left side panel */
+#logo-area {
+  position: fixed;
+  left: clamp(24px, 26vw, 320px);
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(150px, 25vw, 500px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+#logo-watermark {
+  width: 100%;
+  display: block;
+  opacity: 0.95;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  filter: drop-shadow(0 0 30px rgba(184,217,245,0.25));
+}
+
+.clock-container {
+  position: relative;
+  z-index: 1;
+  width: var(--bezel-size);
+  height: var(--bezel-size);
+  /* keep square */
+  aspect-ratio: 1 / 1;
+  margin-top: 190px;
+}
+
+/* ── SVG clock face ───────────────────────────────────────────────────── */
+#clock-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Static arcane halo — pulses gently */
+#arcane-halo {
+  animation: arcane-breathe 4s ease-in-out infinite;
+}
+/* Counter-clockwise outer ring */
+#bezel-counter-ring {
+  transform-origin: 200px 200px;
+  animation: bezel-rotate-ccw 35s linear infinite;
+}
+
+/* Rotating bezel ring */
+#bezel-outer-ring {
+  transform-origin: 200px 200px;
+  animation: bezel-rotate 70s linear infinite;
+}
+
+/* Depletion arc: colour + glow changes per state */
+#depletion-arc {
+  transition:
+    stroke 0.8s ease,
+    filter 0.8s ease;
+}
+
+/* ── Digital readout centred inside the SVG ───────────────────────────── */
+#clock-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  gap: 6px;
+}
+
+#time-display {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(3.2rem, 10.5vmin, 8.5rem);
+  line-height: 1;
+  letter-spacing: 4px;
+  color: var(--state-col);
+  text-shadow:
+    0 0 28px var(--state-glow),
+    0 0 70px color-mix(in srgb, var(--state-glow) 40%, transparent);
+  transition: color 0.7s ease, text-shadow 0.7s ease;
+  user-select: none;
+}
+
+#status-text {
+  font-size: clamp(0.55rem, 1.5vmin, 0.88rem);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent2);
+  opacity: 0.75;
+  text-align: center;
+  transition: color 0.5s ease, opacity 0.5s ease;
+  pointer-events: none;
+}
+
+/* ── State-driven clock colours ───────────────────────────────────────── */
+/* idle */
+body[data-state="idle"] {
+  --state-col:  #b8d9f5;
+  --state-glow: rgba(184,217,245,0.5);
+}
+body[data-state="idle"] #depletion-arc {
+  stroke: url(#arcGrad);
+}
+
+/* running */
+body[data-state="running"] {
+  --state-col:  #80ffe0;
+  --state-glow: rgba(128,255,224,0.55);
+}
+body[data-state="running"] #depletion-arc {
+  stroke: #5fffcc;
+  filter: drop-shadow(0 0 8px rgba(95,255,204,0.7));
+}
+body[data-state="running"] #status-text { color: #80ffe0; opacity: 1; }
+
+/* paused */
+body[data-state="paused"] {
+  --state-col:  #f0d070;
+  --state-glow: rgba(240,208,112,0.5);
+}
+body[data-state="paused"] #depletion-arc {
+  stroke: #f0d070;
+  filter: drop-shadow(0 0 6px rgba(240,208,112,0.6));
+}
+body[data-state="paused"] #status-text { color: #f0d070; opacity: 1; }
+
+/* warning */
+body[data-state="warning"] {
+  --state-col:  #f5a623;
+  --state-glow: rgba(245,166,35,0.65);
+}
+body[data-state="warning"] #depletion-arc {
+  stroke: #f5a623;
+  filter: drop-shadow(0 0 10px rgba(245,166,35,0.8));
+}
+body[data-state="warning"] #time-display {
+  animation: frost-pulse 1.6s ease-in-out infinite;
+}
+body[data-state="warning"] #status-text { color: #f5a623; opacity: 1; }
+
+/* danger */
+body[data-state="danger"] {
+  --state-col:  #ff5252;
+  --state-glow: rgba(255,82,82,0.75);
+}
+body[data-state="danger"] #depletion-arc {
+  stroke: #ff4040;
+  filter: drop-shadow(0 0 14px rgba(255,64,64,0.9));
+}
+body[data-state="danger"] #time-display {
+  animation: danger-heartbeat 0.72s ease-in-out infinite;
+}
+body[data-state="danger"] #status-text  { color: #ff7070; opacity: 1; }
+body[data-state="danger"] #bezel-outer-ring {
+  animation: bezel-rotate 8s linear infinite;
+}
+body[data-state="danger"] #bezel-counter-ring {
+  animation: bezel-rotate-ccw 5s linear infinite;
+}
+
+/* ended */
+body[data-state="ended"] {
+  --state-col:  #ff3030;
+  --state-glow: rgba(255,48,48,0.85);
+}
+body[data-state="ended"] #depletion-arc {
+  stroke: #ff2020;
+  filter: drop-shadow(0 0 18px rgba(255,32,32,1.0));
+}
+body[data-state="ended"] #time-display {
+  animation: blizzard-flash 1.0s ease-in-out infinite;
+}
+body[data-state="ended"] #status-text { color: #ff9090; opacity: 1; }
+
+/* ── Clock keyframes ──────────────────────────────────────────────────── */
+@keyframes bezel-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes bezel-rotate-ccw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+@keyframes arcane-breathe {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1.0; }
+}
+
+@keyframes frost-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+@keyframes danger-heartbeat {
+  0%       { opacity: 1;    transform: scale(1); }
+  15%      { opacity: 0.9;  transform: scale(1.015); }
+  30%      { opacity: 0.3;  transform: scale(0.99); }
+  50%      { opacity: 1;    transform: scale(1); }
+  65%      { opacity: 0.85; transform: scale(1.01); }
+  80%      { opacity: 0.3;  transform: scale(0.995); }
+  100%     { opacity: 1;    transform: scale(1); }
+}
+
+@keyframes blizzard-flash {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.08; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CONTROLS
+   ═══════════════════════════════════════════════════════════════════════ */
+#controls-area {
+  width: 100%;
+  max-width: 820px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 6px 0 4px;
+}
+
+#main-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+#secondary-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+#keyboard-hint {
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(150,185,215,0.32);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────── */
+button {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: #c0d8ec;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition:
+    background  0.2s ease,
+    border-color 0.2s ease,
+    color       0.2s ease,
+    box-shadow  0.2s ease,
+    transform   0.15s ease;
+  white-space: nowrap;
+}
+
+button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent2) 16%, #030c28);
+  border-color: var(--accent2);
+  color: #ffffff;
+  box-shadow: 0 0 18px var(--ui-glow);
+  transform: translateY(-2px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+button.btn-primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button.btn-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 16%, #030c28);
+  border-color: var(--accent);
+  color: #ffe8a0;
+  box-shadow: 0 0 22px rgba(201,168,76,0.35);
+}
+
+#btn-start {
+  font-size: 0.95rem;
+  padding: 12px 30px;
+}
+
+#btn-settings {
+  border-color: rgba(150,185,215,0.18);
+  color: rgba(150,185,215,0.45);
+  padding: 7px 14px;
+  font-size: 0.7rem;
+}
+
+#btn-settings:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: none;
+  transform: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SETTINGS PANEL
+   ═══════════════════════════════════════════════════════════════════════ */
+#settings-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(430px, 94vw);
+  background: linear-gradient(170deg, rgba(3,14,42,0.99) 0%, rgba(1,6,22,0.99) 100%);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 50px rgba(0,0,0,0.7);
+  z-index: 301;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideIn 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+
+#settings-panel.hidden { display: none; }
+
+@keyframes slideIn {
+  from { transform: translateX(110%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+#settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#settings-header h2 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.15rem;
+  color: var(--accent);
+  letter-spacing: 2px;
+}
+
+#settings-close {
+  background: none;
+  border: 1px solid transparent;
+  color: rgba(150,185,215,0.5);
+  font-size: 1.4rem;
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: 8px;
+  letter-spacing: 0;
+  backdrop-filter: none;
+}
+
+#settings-close:hover:not(:disabled) {
+  color: #fff;
+  border-color: var(--border);
+  background: rgba(255,255,255,0.07);
+  transform: none;
+  box-shadow: none;
+}
+
+#settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+fieldset legend {
+  font-size: 0.62rem;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: var(--accent2);
+  padding: 0 8px;
+  opacity: 0.8;
+}
+
+fieldset label {
+  font-size: 0.76rem;
+  letter-spacing: 0.8px;
+  color: rgba(180,210,232,0.70);
+  margin-bottom: -4px;
+}
+
+fieldset input[type="text"],
+fieldset input[type="number"],
+fieldset select {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  padding: 9px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: #e4f2ff;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+fieldset select option {
+  background: #03091e;
+  color: #e4f2ff;
+}
+
+fieldset input:focus,
+fieldset select:focus {
+  border-color: var(--accent2);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent2) 16%, transparent);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-hint {
+  font-size: 0.64rem;
+  color: rgba(150,185,215,0.4);
+  letter-spacing: 0.5px;
+  line-height: 1.5;
+}
+
+#settings-footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#settings-footer button { flex: 1; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EXTRA TURNS OVERLAY
+   ═══════════════════════════════════════════════════════════════════════ */
+#extra-turns-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0, 0, 0.88);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 400;
+  animation: fadeIn 0.3s ease;
+}
+
+#extra-turns-overlay.hidden { display: none; }
+
+#extra-turns-box {
+  background: linear-gradient(150deg, rgba(3,16,50,0.98) 0%, rgba(1,7,24,0.99) 100%);
+  border: 2px solid var(--accent);
+  border-radius: 22px;
+  padding: clamp(28px,5vw,50px) clamp(24px,7vw,60px);
+  text-align: center;
+  box-shadow:
+    0 0 80px rgba(201,168,76,0.28),
+    0 0 200px rgba(201,168,76,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+  max-width: 480px;
+  width: 90%;
+}
+
+.et-crystal {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+  animation: spinslow 18s linear infinite;
+  opacity: 0.85;
+}
+
+@keyframes spinslow {
+  to { transform: rotate(360deg); }
+}
+
+#extra-turns-box h2 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.6rem, 5.5vw, 2.6rem);
+  color: #ff4d4d;
+  text-shadow:
+    0 0 24px rgba(255,77,77,0.7),
+    0 0 60px rgba(255,77,77,0.25);
+  margin-bottom: 12px;
+}
+
+#extra-turns-box p {
+  font-size: 0.95rem;
+  color: #b0cce8;
+  line-height: 1.75;
+  margin-bottom: 4px;
+}
+
+#turns-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin: 20px 0 26px;
+}
+
+#turns-left {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(3.5rem, 12vw, 5.5rem);
+  line-height: 1;
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(201,168,76,0.65);
+  transition: all 0.3s ease;
+}
+
+#turns-label {
+  font-size: 0.68rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(150,185,215,0.55);
+}
+
+#turns-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SPECTATOR MODE
+   ═══════════════════════════════════════════════════════════════════════ */
+[data-mode="spectator"] #controls-area { display: none; }
+
+[data-mode="spectator"] .clock-container {
+  --bezel-size: clamp(340px, 70vmin, 720px);
+}
+
+[data-mode="spectator"] #time-display {
+  font-size: clamp(4rem, 13vmin, 10.5rem);
+}
+
+[data-mode="spectator"] #main-header {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  #round-badge { width: 84px; padding: 10px 6px; }
+  #round-ink-icon { height: 44px; width: 44px; }
+  #round-number   { font-size: 1.5rem; }
+}
+
+@media (max-width: 640px) {
+  #main-header {
+    padding: 8px 10px;
+    gap: 3px;
+  }
+  #logo-set  { height: 40px; }
+  #round-badge { width: 72px; padding: 8px 4px; border-radius: 14px; gap: 5px; }
+  #round-ink-icon { height: 36px; width: 36px; }
+  #round-number   { font-size: 1.3rem; }
+  #round-label, #round-type-label { font-size: 0.46rem; }
+  .rnd-accent     { display: none; }
+
+  #extra-turns-box { padding: 24px 18px; }
+  #turns-buttons   { flex-direction: column; }
+
+  #secondary-controls { flex-direction: column; gap: 6px; }
+  #keyboard-hint      { display: none; }
+
+  button           { padding: 8px 14px; font-size: 0.76rem; }
+  #btn-start       { padding: 10px 22px; }
+}
+
+@media (max-width: 380px) {
+  button     { padding: 7px 10px; font-size: 0.72rem; }
+  #btn-start { padding: 9px 16px; }
+}
