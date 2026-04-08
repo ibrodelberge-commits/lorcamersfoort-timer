@@ -1,5 +1,7 @@
-# Disney/Ravensburger licensed artwork — do not distribute
-Assets/DisneyLorcana/
+# Large print assets not needed for web
+Assets/DisneyLorcana/Generic/Ink Icons In Frames/CMYK/
+Assets/DisneyLorcana/Generic/Lorcana Logo/CMYK/
+CLAUDE/
 
 # OS
 .DS_Store
